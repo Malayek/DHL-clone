@@ -1,0 +1,1186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>CNN-Style News Portal</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+            background: #f5f5f5;
+            color: #111;
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        img {
+            max-width: 100%;
+            display: block;
+        }
+
+        /* HEADER */
+
+        header {
+            background: #cc0000;
+            color: #fff;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .top-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 16px;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 800;
+            font-size: 24px;
+            letter-spacing: 1px;
+        }
+
+        .logo span {
+            background: #fff;
+            color: #cc0000;
+            padding: 0 6px;
+            border-radius: 2px;
+        }
+
+        .top-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 13px;
+        }
+
+        .top-actions button {
+            border: 1px solid rgba(255,255,255,0.6);
+            background: transparent;
+            color: #fff;
+            padding: 4px 10px;
+            font-size: 12px;
+            border-radius: 20px;
+            cursor: pointer;
+        }
+
+        .nav-bar {
+            border-top: 1px solid rgba(255,255,255,0.2);
+            border-bottom: 1px solid rgba(0,0,0,0.3);
+            background: #a80000;
+        }
+
+        .nav-inner {
+            display: flex;
+            align-items: center;
+            overflow-x: auto;
+            scrollbar-width: none;
+        }
+
+        .nav-inner::-webkit-scrollbar {
+            display: none;
+        }
+
+        .nav-link {
+            padding: 10px 14px;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: .04em;
+            color: #ffecec;
+            white-space: nowrap;
+            cursor: pointer;
+        }
+
+        .nav-link.active {
+            background: #000;
+            color: #fff;
+        }
+
+        /* BREAKING NEWS */
+
+        .breaking-bar {
+            background: #000;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 6px 16px;
+            font-size: 14px;
+        }
+
+        .breaking-label {
+            font-weight: 700;
+            text-transform: uppercase;
+            font-size: 12px;
+            letter-spacing: .1em;
+            color: #ffcc00;
+        }
+
+        .breaking-ticker {
+            overflow: hidden;
+            flex: 1;
+        }
+
+        .breaking-inner {
+            white-space: nowrap;
+            animation: ticker 30s linear infinite;
+        }
+
+        @keyframes ticker {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
+
+        /* MAIN LAYOUT */
+
+        .page {
+            max-width: 1180px;
+            margin: 16px auto;
+            padding: 0 12px 40px;
+        }
+
+        .top-row {
+            display: grid;
+            grid-template-columns: 2fr 1.1fr;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .hero-card {
+            background: #fff;
+            border-radius: 4px;
+            overflow: hidden;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+            display: flex;
+            flex-direction: column;
+            cursor: pointer;
+        }
+
+        .hero-img {
+            height: 260px;
+            background-size: cover;
+            background-position: center;
+        }
+
+        .hero-content {
+            padding: 14px 16px 18px;
+        }
+
+        .hero-category {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: .12em;
+            color: #c00;
+            margin-bottom: 6px;
+            font-weight: 700;
+        }
+
+        .hero-title {
+            font-size: 24px;
+            font-weight: 800;
+            margin-bottom: 8px;
+            line-height: 1.2;
+        }
+
+        .hero-meta {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 10px;
+        }
+
+        .hero-summary {
+            font-size: 14px;
+            color: #333;
+        }
+
+        .side-headlines {
+            background: #fff;
+            border-radius: 4px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+            overflow: hidden;
+        }
+
+        .side-headline-title {
+            background: #111;
+            color: #fff;
+            padding: 10px 14px;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: .15em;
+        }
+
+        .side-list {
+            list-style: none;
+        }
+
+        .side-item {
+            padding: 10px 14px;
+            border-top: 1px solid #eee;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        .side-item:hover {
+            background: #f8f8f8;
+        }
+
+        /* SEARCH + CATEGORIES */
+
+        .toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .search-box {
+            flex: 1;
+            min-width: 180px;
+            position: relative;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 8px 28px 8px 10px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            font-size: 14px;
+        }
+
+        .search-icon {
+            position: absolute;
+            right: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 14px;
+            color: #888;
+            pointer-events: none;
+        }
+
+        .category-pills {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .pill {
+            padding: 6px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: .08em;
+            border: 1px solid #bbb;
+            color: #444;
+            cursor: pointer;
+            background: #fff;
+        }
+
+        .pill.active {
+            background: #cc0000;
+            border-color: #cc0000;
+            color: #fff;
+        }
+
+        /* ARTICLE GRID */
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0,1fr));
+            gap: 14px;
+        }
+
+        .card {
+            background: #fff;
+            border-radius: 4px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            cursor: pointer;
+            transition: transform .15s ease, box-shadow .15s ease;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+        }
+
+        .card-img {
+            height: 150px;
+            background-size: cover;
+            background-position: center;
+        }
+
+        .card-body {
+            padding: 10px 12px 12px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .card-category {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: .14em;
+            color: #c00;
+            margin-bottom: 4px;
+            font-weight: 700;
+        }
+
+        .card-title {
+            font-size: 15px;
+            font-weight: 700;
+            margin-bottom: 6px;
+            line-height: 1.3;
+        }
+
+        .card-desc {
+            font-size: 13px;
+            color: #555;
+            flex: 1;
+        }
+
+        .card-meta {
+            font-size: 11px;
+            color: #777;
+            margin-top: 8px;
+        }
+
+        /* ARTICLE VIEW */
+
+        .article-view {
+            display: none;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .article-header {
+            margin-bottom: 16px;
+        }
+
+        .article-category-tag {
+            font-size: 12px;
+            text-transform: uppercase;
+            color: #c00;
+            letter-spacing: .14em;
+            margin-bottom: 6px;
+            font-weight: 700;
+        }
+
+        .article-title {
+            font-size: 28px;
+            font-weight: 800;
+            margin-bottom: 8px;
+        }
+
+        .article-meta {
+            font-size: 13px;
+            color: #777;
+            margin-bottom: 14px;
+        }
+
+        .article-hero {
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 14px;
+        }
+
+        .article-body {
+            font-size: 15px;
+            line-height: 1.7;
+            color: #222;
+            margin-bottom: 24px;
+        }
+
+        .article-body p {
+            margin-bottom: 12px;
+        }
+
+        .article-layout {
+            display: grid;
+            grid-template-columns: 3fr 1.2fr;
+            gap: 20px;
+        }
+
+        .back-link {
+            font-size: 13px;
+            color: #c00;
+            margin-bottom: 12px;
+            cursor: pointer;
+        }
+
+        /* RELATED */
+
+        .related-block {
+            background: #fff;
+            padding: 10px 12px 14px;
+            border-radius: 4px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+        }
+
+        .related-title {
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: .12em;
+        }
+
+        .related-list {
+            list-style: none;
+        }
+
+        .related-item {
+            font-size: 13px;
+            padding: 6px 0;
+            border-top: 1px solid #eee;
+            cursor: pointer;
+        }
+
+        .related-item:first-child {
+            border-top: none;
+        }
+
+        .related-item:hover {
+            color: #c00;
+        }
+
+        /* COMMENTS */
+
+        .comments-block {
+            margin-top: 24px;
+        }
+
+        .comments-title {
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .comment-form {
+            background: #fff;
+            padding: 10px 12px 12px;
+            border-radius: 4px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+            margin-bottom: 12px;
+        }
+
+        .comment-form-row {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .comment-form input,
+        .comment-form textarea {
+            width: 100%;
+            padding: 6px 8px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            font-size: 13px;
+        }
+
+        .comment-form textarea {
+            min-height: 60px;
+            resize: vertical;
+        }
+
+        .comment-form button {
+            background: #cc0000;
+            border: none;
+            color: #fff;
+            padding: 6px 10px;
+            font-size: 13px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .comment-list {
+            background: #fff;
+            border-radius: 4px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+            padding: 8px 10px;
+        }
+
+        .comment-empty {
+            font-size: 13px;
+            color: #777;
+            padding: 4px 2px;
+        }
+
+        .comment-item {
+            padding: 6px 2px;
+            border-top: 1px solid #eee;
+        }
+
+        .comment-item:first-child {
+            border-top: none;
+        }
+
+        .comment-meta {
+            font-size: 11px;
+            color: #999;
+            margin-bottom: 3px;
+        }
+
+        .comment-text {
+            font-size: 13px;
+            color: #333;
+        }
+
+        /* FOOTER */
+
+        footer {
+            background: #111;
+            color: #bbb;
+            padding: 18px 16px;
+            font-size: 12px;
+            text-align: center;
+        }
+
+        /* RESPONSIVE */
+
+        @media (max-width: 960px) {
+            .top-row {
+                grid-template-columns: 1fr;
+            }
+            .article-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 720px) {
+            .grid {
+                grid-template-columns: repeat(2, minmax(0,1fr));
+            }
+            .nav-link {
+                font-size: 12px;
+                padding: 8px 10px;
+            }
+            .hero-img {
+                height: 210px;
+            }
+        }
+
+        @media (max-width: 520px) {
+            .top-bar {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 6px;
+            }
+            .grid {
+                grid-template-columns: 1fr;
+            }
+            .breaking-bar {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="top-bar">
+        <div class="logo">
+            <span>CN</span> News Live
+        </div>
+        <div class="top-actions">
+            <span id="currentTime">Tuesday 10:00</span>
+            <button>Live TV</button>
+            <button>U.S. Edition</button>
+        </div>
+    </div>
+    <div class="nav-bar">
+        <div class="nav-inner" id="mainNav">
+            <div class="nav-link active" data-section="home">Home</div>
+            <div class="nav-link" data-category="World">World</div>
+            <div class="nav-link" data-category="Politics">Politics</div>
+            <div class="nav-link" data-category="Business">Business</div>
+            <div class="nav-link" data-category="Tech">Tech</div>
+            <div class="nav-link" data-category="Sports">Sports</div>
+            <div class="nav-link" data-category="Entertainment">Entertainment</div>
+        </div>
+    </div>
+</header>
+
+<div class="breaking-bar">
+    <div class="breaking-label">Breaking</div>
+    <div class="breaking-ticker">
+        <div class="breaking-inner" id="breakingTicker">
+            Major summit underway as global leaders meet for emergency climate talks •
+            Tech stocks rally after record earnings from leading companies •
+            Championship thriller: underdogs stun favorites in last-minute victory •
+            New study reveals shifting trends in remote work around the world •
+        </div>
+    </div>
+</div>
+
+<main class="page">
+
+    <!-- HOMEPAGE VIEW -->
+    <section id="homeView">
+        <div class="top-row">
+            <!-- Hero -->
+            <article class="hero-card" id="heroCard">
+                <div class="hero-img" id="heroImage"></div>
+                <div class="hero-content">
+                    <div class="hero-category" id="heroCategory"></div>
+                    <h1 class="hero-title" id="heroTitle"></h1>
+                    <div class="hero-meta" id="heroMeta"></div>
+                    <p class="hero-summary" id="heroSummary"></p>
+                </div>
+            </article>
+
+            <!-- Side headlines -->
+            <aside class="side-headlines">
+                <div class="side-headline-title">Top Stories</div>
+                <ul class="side-list" id="topStoriesList"></ul>
+            </aside>
+        </div>
+
+        <!-- Toolbar -->
+        <div class="toolbar">
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="Search news by keyword...">
+                <span class="search-icon">🔍</span>
+            </div>
+            <div class="category-pills" id="categoryPills">
+                <div class="pill active" data-pill="All">All</div>
+                <div class="pill" data-pill="World">World</div>
+                <div class="pill" data-pill="Politics">Politics</div>
+                <div class="pill" data-pill="Business">Business</div>
+                <div class="pill" data-pill="Tech">Tech</div>
+                <div class="pill" data-pill="Sports">Sports</div>
+                <div class="pill" data-pill="Entertainment">Entertainment</div>
+            </div>
+        </div>
+
+        <!-- Article cards -->
+        <section class="grid" id="cardsGrid"></section>
+    </section>
+
+    <!-- ARTICLE VIEW -->
+    <section class="article-view" id="articleView">
+        <div class="back-link" id="backToHome">← Back to homepage</div>
+
+        <div class="article-header">
+            <div class="article-category-tag" id="articleCategory"></div>
+            <h1 class="article-title" id="articleTitle"></h1>
+            <div class="article-meta" id="articleMeta"></div>
+        </div>
+
+        <div class="article-layout">
+            <div>
+                <div class="article-hero">
+                    <img id="articleImage" src="" alt="">
+                </div>
+                <div class="article-body" id="articleBody"></div>
+
+                <section class="comments-block">
+                    <h2 class="comments-title">Comments</h2>
+
+                    <div class="comment-form">
+                        <div class="comment-form-row">
+                            <input type="text" id="commentName" placeholder="Your name">
+                        </div>
+                        <div class="comment-form-row">
+                            <textarea id="commentText" placeholder="Add a comment..."></textarea>
+                        </div>
+                        <button id="commentSubmit">Post Comment</button>
+                    </div>
+
+                    <div class="comment-list" id="commentList">
+                        <div class="comment-empty">No comments yet. Be the first to comment.</div>
+                    </div>
+                </section>
+            </div>
+
+            <aside>
+                <div class="related-block">
+                    <div class="related-title">Related News</div>
+                    <ul class="related-list" id="relatedList"></ul>
+                </div>
+            </aside>
+        </div>
+    </section>
+
+</main>
+
+<footer>
+    © 2026 CN News Live. All rights reserved. This is a demo news experience for educational purposes.
+</footer>
+
+<script>
+    // Mock articles data (can later be replaced with real API)
+    const articles = [
+        {
+            id: "climate-summit",
+            title: "World leaders gather for high-stakes climate summit",
+            description: "Global leaders meet for urgent talks as new data shows record heat and rising sea levels.",
+            content: [
+                "Delegations from more than 100 countries have arrived for what observers are calling one of the most consequential climate summits in a decade.",
+                "Negotiators are under pressure to deliver concrete commitments on emissions cuts, financing for vulnerable nations, and a roadmap for tracking progress.",
+                "Outside the venue, thousands of demonstrators have gathered, calling for faster action and warning that incremental steps are no longer enough."
+            ],
+            category: "World",
+            author: "Alex Morgan",
+            date: "Jan 06, 2026",
+            image: "https://images.pexels.com/photos/2990650/pexels-photo-2990650.jpeg?auto=compress&cs=tinysrgb&w=1200",
+            featured: true
+        },
+        {
+            id: "election-shift",
+            title: "Tight race reshapes expectations ahead of national elections",
+            description: "New polling reveals a dramatic late shift as undecided voters break in unexpected ways.",
+            content: [
+                "Just weeks before election day, fresh polling data suggests a much tighter race than analysts had anticipated.",
+                "Campaign strategists from both major parties are recalibrating their final push, focusing on turnout and last-minute messaging.",
+                "Independent voters continue to play an outsized role, with many citing the economy and healthcare as decisive issues."
+            ],
+            category: "Politics",
+            author: "Jamie Patel",
+            date: "Jan 05, 2026",
+            image: "https://images.pexels.com/photos/1550340/pexels-photo-1550340.jpeg?auto=compress&cs=tinysrgb&w=1200"
+        },
+        {
+            id: "market-rally",
+            title: "Markets rally after tech earnings beat expectations",
+            description: "Major indexes climb as leading technology firms post record quarterly results.",
+            content: [
+                "Global stock markets moved sharply higher today after a wave of positive earnings reports from some of the world's largest technology firms.",
+                "Investors cheered strong revenue growth and optimistic guidance for the year ahead, despite persistent concerns about inflation and interest rates.",
+                "Analysts caution, however, that volatility is likely to remain elevated as markets digest new data and central bank decisions."
+            ],
+            category: "Business",
+            author: "Riley Chen",
+            date: "Jan 04, 2026",
+            image: "https://images.pexels.com/photos/210607/pexels-photo-210607.jpeg?auto=compress&cs=tinysrgb&w=1200"
+        },
+        {
+            id: "ai-breakthrough",
+            title: "New AI breakthrough promises to transform everyday tools",
+            description: "Researchers unveil a model capable of reasoning across multiple types of data in real time.",
+            content: [
+                "A team of researchers has announced a new artificial intelligence model designed to understand text, images, and audio simultaneously.",
+                "The system, which can respond to complex queries in natural language, is already being tested in search, productivity, and education tools.",
+                "Ethicists emphasize the need for robust guardrails, citing concerns about misinformation, bias, and the impact on creative industries."
+            ],
+            category: "Tech",
+            author: "Dana Scott",
+            date: "Jan 03, 2026",
+            image: "https://images.pexels.com/photos/8438920/pexels-photo-8438920.jpeg?auto=compress&cs=tinysrgb&w=1200"
+        },
+        {
+            id: "sports-thriller",
+            title: "Last-second score crowns new champions in epic final",
+            description: "A dramatic finish leaves fans stunned as underdog team seizes the title in stoppage time.",
+            content: [
+                "In one of the most dramatic finishes in recent memory, the underdog side clinched the championship with a last-second score.",
+                "The stadium erupted as the winning goal crossed the line, capping off a fast-paced match filled with momentum swings and near misses.",
+                "Players dedicated the victory to their supporters, promising that this is only the beginning of a new era for the club."
+            ],
+            category: "Sports",
+            author: "Chris Alvarez",
+            date: "Jan 02, 2026",
+            image: "https://images.pexels.com/photos/399187/pexels-photo-399187.jpeg?auto=compress&cs=tinysrgb&w=1200"
+        },
+        {
+            id: "film-festival",
+            title: "Global film festival spotlights bold new voices",
+            description: "Directors from around the world debut stories that blend local culture with universal themes.",
+            content: [
+                "The annual film festival opened last night with a slate of premieres that critics are already calling one of the strongest in years.",
+                "From intimate dramas to ambitious sci-fi epics, filmmakers used the platform to explore questions of identity, technology, and community.",
+                "Festival organizers say attendance has surged as audiences seek fresh perspectives and stories from beyond traditional hubs."
+            ],
+            category: "Entertainment",
+            author: "Taylor Brooks",
+            date: "Jan 01, 2026",
+            image: "https://images.pexels.com/photos/799137/pexels-photo-799137.jpeg?auto=compress&cs=tinysrgb&w=1200"
+        },
+        {
+            id: "remote-work",
+            title: "New study reveals lasting shift in remote work habits",
+            description: "Researchers find hybrid work is becoming a permanent fixture for many industries.",
+            content: [
+                "A comprehensive survey of thousands of workers across sectors suggests that hybrid work arrangements are here to stay.",
+                "Employees report higher satisfaction when they have flexibility, though the study notes ongoing challenges around collaboration and burnout.",
+                "Companies are experimenting with new office designs, meeting formats, and digital tools to keep teams connected."
+            ],
+            category: "Business",
+            author: "Jordan Lee",
+            date: "Dec 30, 2025",
+            image: "https://images.pexels.com/photos/3861958/pexels-photo-3861958.jpeg?auto=compress&cs=tinysrgb&w=1200"
+        },
+        {
+            id: "startup-space",
+            title: "Startups race to build next-generation space stations",
+            description: "Private companies accelerate plans to launch commercial platforms into orbit.",
+            content: [
+                "Several space startups have announced new funding rounds and partnerships aimed at building commercial space stations.",
+                "The projects could open low-Earth orbit to more research institutions, media companies, and even tourism ventures.",
+                "Regulators and scientists caution that rules and safety standards must keep pace with the rapid expansion of activity in orbit."
+            ],
+            category: "Tech",
+            author: "Morgan Rivera",
+            date: "Dec 28, 2025",
+            image: "https://images.pexels.com/photos/2150/sky-earth-space-working.jpg?auto=compress&cs=tinysrgb&w=1200"
+        },
+        {
+            id: "world-health",
+            title: "Global health officials track emergence of new virus variant",
+            description: "Experts monitor early data as countries ramp up testing and surveillance.",
+            content: [
+                "Health agencies worldwide are tracking a newly detected virus variant that has appeared in several regions.",
+                "Scientists emphasize that more data is needed, but early indicators suggest vaccines still provide strong protection.",
+                "Governments are urging people to stay up to date with boosters and basic precautions while avoiding panic."
+            ],
+            category: "World",
+            author: "Aisha Rahman",
+            date: "Dec 27, 2025",
+            image: "https://images.pexels.com/photos/3873179/pexels-photo-3873179.jpeg?auto=compress&cs=tinysrgb&w=1200"
+        }
+    ];
+
+    let currentArticleId = null;
+
+    // DOM references
+    const heroCard = document.getElementById("heroCard");
+    const heroImage = document.getElementById("heroImage");
+    const heroCategory = document.getElementById("heroCategory");
+    const heroTitle = document.getElementById("heroTitle");
+    const heroMeta = document.getElementById("heroMeta");
+    const heroSummary = document.getElementById("heroSummary");
+
+    const topStoriesList = document.getElementById("topStoriesList");
+    const cardsGrid = document.getElementById("cardsGrid");
+    const searchInput = document.getElementById("searchInput");
+
+    const pills = document.querySelectorAll(".pill");
+    const navLinks = document.querySelectorAll(".nav-link");
+
+    const homeView = document.getElementById("homeView");
+    const articleView = document.getElementById("articleView");
+
+    const articleCategory = document.getElementById("articleCategory");
+    const articleTitle = document.getElementById("articleTitle");
+    const articleMeta = document.getElementById("articleMeta");
+    const articleImage = document.getElementById("articleImage");
+    const articleBody = document.getElementById("articleBody");
+    const relatedList = document.getElementById("relatedList");
+    const backToHome = document.getElementById("backToHome");
+
+    const commentName = document.getElementById("commentName");
+    const commentText = document.getElementById("commentText");
+    const commentSubmit = document.getElementById("commentSubmit");
+    const commentList = document.getElementById("commentList");
+
+    // TIME
+    function updateTime() {
+        const el = document.getElementById("currentTime");
+        const now = new Date();
+        const options = { weekday: "short", hour: "2-digit", minute: "2-digit" };
+        el.textContent = now.toLocaleString(undefined, options);
+    }
+    setInterval(updateTime, 30000);
+    updateTime();
+
+    // INITIAL RENDER
+
+    function renderHero() {
+        const featured = articles.find(a => a.featured) || articles[0];
+        heroImage.style.backgroundImage = `url(${featured.image})`;
+        heroCategory.textContent = featured.category;
+        heroTitle.textContent = featured.title;
+        heroMeta.textContent = `${featured.author} • ${featured.date}`;
+        heroSummary.textContent = featured.description;
+        heroCard.dataset.id = featured.id;
+    }
+
+    function renderTopStories() {
+        topStoriesList.innerHTML = "";
+        articles.slice(0, 5).forEach(a => {
+            const li = document.createElement("li");
+            li.className = "side-item";
+            li.textContent = a.title;
+            li.dataset.id = a.id;
+            topStoriesList.appendChild(li);
+        });
+    }
+
+    function renderCards(filterCategory = "All", keyword = "") {
+        cardsGrid.innerHTML = "";
+        const lower = keyword.trim().toLowerCase();
+        let filtered = articles.slice();
+
+        if (filterCategory !== "All") {
+            filtered = filtered.filter(a => a.category === filterCategory);
+        }
+        if (lower) {
+            filtered = filtered.filter(a =>
+                a.title.toLowerCase().includes(lower) ||
+                a.description.toLowerCase().includes(lower)
+            );
+        }
+
+        filtered.forEach(a => {
+            const card = document.createElement("article");
+            card.className = "card";
+            card.dataset.id = a.id;
+
+            const img = document.createElement("div");
+            img.className = "card-img";
+            img.style.backgroundImage = `url(${a.image})`;
+
+            const body = document.createElement("div");
+            body.className = "card-body";
+
+            const cat = document.createElement("div");
+            cat.className = "card-category";
+            cat.textContent = a.category;
+
+            const title = document.createElement("h2");
+            title.className = "card-title";
+            title.textContent = a.title;
+
+            const desc = document.createElement("p");
+            desc.className = "card-desc";
+            desc.textContent = a.description;
+
+            const meta = document.createElement("div");
+            meta.className = "card-meta";
+            meta.textContent = `${a.author} • ${a.date}`;
+
+            body.appendChild(cat);
+            body.appendChild(title);
+            body.appendChild(desc);
+            body.appendChild(meta);
+
+            card.appendChild(img);
+            card.appendChild(body);
+            cardsGrid.appendChild(card);
+        });
+    }
+
+    // ARTICLE VIEW
+
+    function openArticle(id) {
+        const article = articles.find(a => a.id === id);
+        if (!article) return;
+
+        currentArticleId = id;
+        homeView.style.display = "none";
+        articleView.style.display = "block";
+
+        articleCategory.textContent = article.category;
+        articleTitle.textContent = article.title;
+        articleMeta.textContent = `${article.author} • ${article.date}`;
+        articleImage.src = article.image;
+        articleImage.alt = article.title;
+
+        articleBody.innerHTML = "";
+        article.content.forEach(p => {
+            const para = document.createElement("p");
+            para.textContent = p;
+            articleBody.appendChild(para);
+        });
+
+        renderRelated(article);
+        loadComments(article.id);
+        window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    function renderRelated(article) {
+        relatedList.innerHTML = "";
+        const sameCategory = articles.filter(a => a.category === article.category && a.id !== article.id);
+        const others = articles.filter(a => a.category !== article.category);
+        const pool = [...sameCategory, ...others].slice(0, 5);
+
+        pool.forEach(a => {
+            const li = document.createElement("li");
+            li.className = "related-item";
+            li.textContent = a.title;
+            li.dataset.id = a.id;
+            relatedList.appendChild(li);
+        });
+    }
+
+    backToHome.addEventListener("click", () => {
+        articleView.style.display = "none";
+        homeView.style.display = "block";
+        currentArticleId = null;
+        window.scrollTo({ top: 0, behavior: "smooth" });
+    });
+
+    // COMMENTS
+
+    function getCommentsKey(articleId) {
+        return "news_comments_" + articleId;
+    }
+
+    function loadComments(articleId) {
+        const key = getCommentsKey(articleId);
+        const data = localStorage.getItem(key);
+        let comments = [];
+        if (data) {
+            try { comments = JSON.parse(data) || []; } catch (e) { comments = []; }
+        }
+
+        commentList.innerHTML = "";
+        if (!comments.length) {
+            const empty = document.createElement("div");
+            empty.className = "comment-empty";
+            empty.textContent = "No comments yet. Be the first to comment.";
+            commentList.appendChild(empty);
+            return;
+        }
+
+        comments.forEach(c => {
+            const item = document.createElement("div");
+            item.className = "comment-item";
+
+            const meta = document.createElement("div");
+            meta.className = "comment-meta";
+            meta.textContent = `${c.name} • ${new Date(c.time).toLocaleString()}`;
+
+            const text = document.createElement("div");
+            text.className = "comment-text";
+            text.textContent = c.text;
+
+            item.appendChild(meta);
+            item.appendChild(text);
+            commentList.appendChild(item);
+        });
+    }
+
+    function saveComment(articleId, name, text) {
+        const key = getCommentsKey(articleId);
+        const data = localStorage.getItem(key);
+        let comments = [];
+        if (data) {
+            try { comments = JSON.parse(data) || []; } catch (e) { comments = []; }
+        }
+        comments.unshift({ name, text, time: Date.now() });
+        localStorage.setItem(key, JSON.stringify(comments));
+    }
+
+    commentSubmit.addEventListener("click", () => {
+        if (!currentArticleId) return;
+
+        const name = commentName.value.trim() || "Anonymous";
+        const text = commentText.value.trim();
+        if (!text) {
+            alert("Please write a comment before posting.");
+            return;
+        }
+
+        saveComment(currentArticleId, name, text);
+        commentText.value = "";
+        loadComments(currentArticleId);
+    });
+
+    // EVENTS
+
+    // hero click
+    heroCard.addEventListener("click", () => {
+        const id = heroCard.dataset.id;
+        if (id) openArticle(id);
+    });
+
+    // top stories click
+    topStoriesList.addEventListener("click", e => {
+        const li = e.target.closest(".side-item");
+        if (!li) return;
+        const id = li.dataset.id;
+        openArticle(id);
+    });
+
+    // cards click
+    cardsGrid.addEventListener("click", e => {
+        const card = e.target.closest(".card");
+        if (!card) return;
+        openArticle(card.dataset.id);
+    });
+
+    // related click
+    relatedList.addEventListener("click", e => {
+        const li = e.target.closest(".related-item");
+        if (!li) return;
+        openArticle(li.dataset.id);
+    });
+
+    // pill filter
+    pills.forEach(p => {
+        p.addEventListener("click", () => {
+            pills.forEach(x => x.classList.remove("active"));
+            p.classList.add("active");
+            const category = p.dataset.pill;
+            renderCards(category, searchInput.value);
+        });
+    });
+
+    // nav bar categories
+    navLinks.forEach(link => {
+        link.addEventListener("click", () => {
+            navLinks.forEach(l => l.classList.remove("active"));
+            link.classList.add("active");
+
+            const section = link.dataset.section;
+            const cat = link.dataset.category;
+
+            if (section === "home") {
+                // reset filters
+                pills.forEach(p => {
+                    p.classList.toggle("active", p.dataset.pill === "All");
+                });
+                searchInput.value = "";
+                renderCards("All", "");
+                homeView.style.display = "block";
+                articleView.style.display = "none";
+                currentArticleId = null;
+                window.scrollTo({ top: 0, behavior: "smooth" });
+            } else if (cat) {
+                // open home view filtered by category
+                homeView.style.display = "block";
+                articleView.style.display = "none";
+                currentArticleId = null;
+
+                pills.forEach(p => {
+                    p.classList.toggle("active", p.dataset.pill === cat);
+                });
+                renderCards(cat, searchInput.value);
+                window.scrollTo({ top: 0, behavior: "smooth" });
+            }
+        });
+    });
+
+    // search
+    searchInput.addEventListener("input", () => {
+        const activePill = document.querySelector(".pill.active");
+        const cat = activePill ? activePill.dataset.pill : "All";
+        renderCards(cat, searchInput.value);
+    });
+
+    // INITIALIZE
+    renderHero();
+    renderTopStories();
+    renderCards("All", "");
+</script>
+
+</body>
+</html>
